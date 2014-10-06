@@ -28,8 +28,10 @@ class MiniReceiver implements Consumer<Event<Integer>> {
 
     protected Logger logger;
 
+    @Override
     public void accept(Event<Integer> ev) {
 
+        System.out.println("Holla");
         logger.info("MiniReceiver " + ev.getData() );
         latch.countDown();
     }

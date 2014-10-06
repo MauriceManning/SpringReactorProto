@@ -1,16 +1,23 @@
 package edu.berkeley.path.next.TestDisruptor;
 
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.logging.log4j.LogManager;
 import org.springframework.context.annotation.Bean;
 import reactor.core.Environment;
 import reactor.core.Reactor;
+import reactor.core.processor.spec.ProcessorSpec;
 import reactor.core.spec.Reactors;
+import reactor.event.Event;
+import reactor.function.Consumer;
+import reactor.function.Supplier;
 
 public class TestConfiguration {
 
-    private int NUMBER_OF_LINKS = 100;
+    private int NUMBER_OF_LINKS = 1000;
+
+
 
     @Bean public RunTest runTest() {
         RunTest rt =  new RunTest();
@@ -46,6 +53,7 @@ public class TestConfiguration {
         recv.logger = LogManager.getLogger(TestOne.class.getName());
         return recv;
     }
+
 
     @Bean
     public CountDownLatch latch(){

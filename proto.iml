@@ -14,20 +14,20 @@
     <facet type="web" name="Web2">
       <configuration>
         <descriptors>
-          <deploymentDescriptor name="web.xml" url="file://$MODULE_DIR$/insight-instance/conf/web.xml" />
+          <deploymentDescriptor name="web.xml" url="file://$MODULE_DIR$/insight-instance/webapps/insight/WEB-INF/web.xml" />
         </descriptors>
         <webroots>
-          <root url="file://$MODULE_DIR$/insight-instance/conf" relative="/WEB-INF" />
+          <root url="file://$MODULE_DIR$/insight-instance/webapps/insight" relative="/" />
         </webroots>
       </configuration>
     </facet>
     <facet type="web" name="Web3">
       <configuration>
         <descriptors>
-          <deploymentDescriptor name="web.xml" url="file://$MODULE_DIR$/insight-instance/webapps/insight/WEB-INF/web.xml" />
+          <deploymentDescriptor name="web.xml" url="file://$MODULE_DIR$/insight-instance/conf/web.xml" />
         </descriptors>
         <webroots>
-          <root url="file://$MODULE_DIR$/insight-instance/webapps/insight" relative="/" />
+          <root url="file://$MODULE_DIR$/insight-instance/conf" relative="/WEB-INF" />
         </webroots>
       </configuration>
     </facet>
@@ -44,12 +44,10 @@
     <facet type="Spring" name="Spring">
       <configuration>
         <fileset id="fileset" name="Spring Application Context" removed="false">
-          <file>file://$MODULE_DIR$/src/main/resources/datasource.xml</file>
-          <file>file://$MODULE_DIR$/insight-instance/webapps/insight/WEB-INF/classes/com/springsource/insight/dashboard/app-config-base.xml</file>
-          <file>file://$MODULE_DIR$/insight-instance/webapps/insight/WEB-INF/config/mvc-config.xml</file>
           <file>file://$MODULE_DIR$/insight-instance/webapps/insight/WEB-INF/config/app-config-tomcat.xml</file>
-          <file>file://$MODULE_DIR$/src/main/resources/ctm-engine.xml</file>
+          <file>file://$MODULE_DIR$/insight-instance/webapps/insight/WEB-INF/config/mvc-config.xml</file>
           <file>file://$MODULE_DIR$/src/main/resources/aop-config.xml</file>
+          <file>file://$MODULE_DIR$/insight-instance/webapps/insight/WEB-INF/classes/com/springsource/insight/dashboard/app-config-base.xml</file>
         </fileset>
       </configuration>
     </facet>
@@ -119,7 +117,7 @@
     <orderEntry type="library" name="Maven: org.projectreactor:reactor-core:1.1.0.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: com.goldmansachs:gs-collections:5.0.0" level="project" />
     <orderEntry type="library" name="Maven: com.goldmansachs:gs-collections-api:5.0.0" level="project" />
-    <orderEntry type="library" name="Maven: com.lmax:disruptor:3.0.0" level="project" />
+    <orderEntry type="library" name="Maven: com.lmax:disruptor:3.3.0" level="project" />
     <orderEntry type="library" name="Maven: org.projectreactor.spring:reactor-spring-core:1.1.0.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.projectreactor:reactor-net:1.1.0.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: io.netty:netty-all:4.0.18.Final" level="project" />
