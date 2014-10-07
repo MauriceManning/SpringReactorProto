@@ -22,6 +22,7 @@ public class TestConfiguration {
     @Bean public RunTest runTest() {
         RunTest rt =  new RunTest();
         rt.NUMBER_OF_LINKS = NUMBER_OF_LINKS;
+        rt.linkMgr = new LinkManager();
         return rt;
     }
 

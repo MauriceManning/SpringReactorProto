@@ -26,6 +26,11 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
+import java.io.IOException;
 
 @Configuration
 @ComponentScan("edu.berkeley.path.next.TestDisruptor")
@@ -48,6 +53,8 @@ public class RunTest  {
     protected int NUMBER_OF_LINKS;
 
     protected Environment environment;
+
+    protected  LinkManager linkMgr;
 
     @Bean
     public void run() throws Exception {
@@ -78,6 +85,7 @@ public class RunTest  {
 
         final Logger logger = LogManager.getLogger(TestOne.class.getName());
         logger.info("runDisruptor start. ");
+
 
         // Specify the size of the ring buffer, must be power of 2.
         int bufferSize = 1024;
@@ -116,6 +124,8 @@ public class RunTest  {
         ByteBuffer bb = ByteBuffer.allocate(8);
         long max = 10000000L;
 
+        System.out.println("runDisruptor Number of Longs  to send: " + max );
+
         long start = System.currentTimeMillis();
 
         for (long l = 0; l < max; l++)
@@ -128,6 +138,110 @@ public class RunTest  {
         System.out.println("runDisruptor Elapsed time: " + elapsed + "ms");
 
 
+    }
+
+
+    @Bean
+    public void runDisruptorForLinks() throws Exception {
+
+        final Logger logger = LogManager.getLogger(TestOne.class.getName());
+        logger.info("runDisruptorForLinks start. ");
+
+        // create one Link and wrap it in an event so it is ready to publish to Reactor
+        LinkDataRaw link = linkMgr.getLink();
+        System.out.println("link size: " + sizeof(link));
+        System.out.println("link size: " + sizeof(link));
+
+
+        // Specify the size of the ring buffer, must be power of 2.
+        int bufferSize = 1024;
+
+        // Executor that will be used to construct new threads for consumers
+        ExecutorService executor = Executors.newSingleThreadExecutor(DaemonThreadFactory.INSTANCE);
+
+
+        // The factory for the event
+        LinkEventFactory factory = new LinkEventFactory();
+
+
+        // Construct the Disruptor
+
+        //Disruptor<LongEvent> disruptor = new Disruptor<>(factory, bufferSize, executor);
+
+        //Commit to a single producer which optimizes the disruptor
+        Disruptor<LinkEvent> disruptor = new Disruptor(factory,
+                bufferSize,
+                executor,
+                ProducerType.SINGLE, // Single producer
+                new YieldingWaitStrategy()
+        );
+
+
+        // Connect the handler
+        disruptor.handleEventsWith(new LinkEventHandler());
+
+        // Start the Disruptor, starts all threads running
+        disruptor.start();
+
+        // Get the ring buffer from the Disruptor to be used for publishing.
+        RingBuffer<LinkEvent> ringBuffer = disruptor.getRingBuffer();
+
+        LinkEventProducer producer = new LinkEventProducer(ringBuffer);
+
+        //This LinkDataRaw object is 574 bytes
+        ByteBuffer bb = ByteBuffer.allocate(574);
+        long max = 10000000L;
+
+        bb.put(getTheBytes(link));
+        System.out.println("runDisruptorForLinks bb: " + bb.toString() );
+
+        LinkDataRaw newLink = (LinkDataRaw) deserialize(bb.array());
+        //Check that this object is valid
+        //System.out.println("runDisruptorForLinks newLink: " + newLink.getSpeedLimit() );
+        System.out.println("runDisruptor Number of RawLinkData objects to send: " + max );
+
+        long start = System.currentTimeMillis();
+
+        for (long l = 0; l < max; l++)
+        {
+            producer.onData(bb);
+        }
+
+        long elapsed = System.currentTimeMillis()-start;
+        System.out.println("runDisruptorForLinks Elapsed time: " + elapsed + "ms");
+
+
+    }
+
+    public static int sizeof(Object obj) throws IOException {
+
+        ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteOutputStream);
+
+        objectOutputStream.writeObject(obj);
+        objectOutputStream.flush();
+        objectOutputStream.close();
+
+        return byteOutputStream.toByteArray().length;
+    }
+
+    public static byte[] getTheBytes(Object obj) throws IOException {
+
+        ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteOutputStream);
+
+        objectOutputStream.writeObject(obj);
+        objectOutputStream.flush();
+        objectOutputStream.close();
+        System.out.println("runDisruptorForLinks objectOutputStream: " + objectOutputStream.toString() );
+
+        return byteOutputStream.toByteArray();
+    }
+
+    public static Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream b = new ByteArrayInputStream(bytes);
+        ObjectInputStream o = new ObjectInputStream(b);
+        return o.readObject();
     }
 
 }
