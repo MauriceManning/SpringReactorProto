@@ -30,7 +30,7 @@ public class TestDisruptor1 {
         RunTest runTest = ctx.getBean(RunTest.class);
 
         //This tests uses longs to pass thru RB
-        runTest.runDisruptor();
+        //runTest.runDisruptor();
 
         //This test passes Links thru the RB
         runTest.runDisruptorForLinks();

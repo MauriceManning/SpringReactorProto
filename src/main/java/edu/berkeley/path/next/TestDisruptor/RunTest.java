@@ -21,6 +21,8 @@ import com.lmax.disruptor.BlockingWaitStrategy;
 import com.lmax.disruptor.YieldingWaitStrategy;
 import com.lmax.disruptor.dsl.ProducerType;
 import com.lmax.disruptor.util.DaemonThreadFactory;
+
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
@@ -49,12 +51,28 @@ public class RunTest  {
     private MiniReceiver minireceiver;
 
 
+    @Autowired
+    private LinkEventHandler linkEventHandler;
+    @Autowired
+    private LinkEventHandler2 linkEventHandler2;
+
+    @Autowired
+    private LinkEventHandler2 linkEventHandler3;
+
+    @Autowired
+    private LinkEventHandler2 linkEventHandler4;
+
+    @Autowired
+    CountDownLatch disruptorLinksLatch;
+
     // number of links to publish to the reactor
     protected int NUMBER_OF_LINKS;
 
     protected Environment environment;
 
     protected  LinkManager linkMgr;
+
+    protected ExecutorService executor;
 
     @Bean
     public void run() throws Exception {
@@ -89,10 +107,6 @@ public class RunTest  {
 
         // Specify the size of the ring buffer, must be power of 2.
         int bufferSize = 1024;
-
-        // Executor that will be used to construct new threads for consumers
-        ExecutorService executor = Executors.newSingleThreadExecutor(DaemonThreadFactory.INSTANCE);
-
 
         // The factory for the event
         LongEventFactory factory = new LongEventFactory();
@@ -150,22 +164,15 @@ public class RunTest  {
         // create one Link and wrap it in an event so it is ready to publish to Reactor
         LinkDataRaw link = linkMgr.getLink();
         System.out.println("link size: " + sizeof(link));
-        System.out.println("link size: " + sizeof(link));
-
 
         // Specify the size of the ring buffer, must be power of 2.
-        int bufferSize = 1024;
-
-        // Executor that will be used to construct new threads for consumers
-        ExecutorService executor = Executors.newSingleThreadExecutor(DaemonThreadFactory.INSTANCE);
-
+        //int bufferSize = 1024;
+        int bufferSize = 262144;  //256 * 1024
 
         // The factory for the event
         LinkEventFactory factory = new LinkEventFactory();
 
-
         // Construct the Disruptor
-
         //Disruptor<LongEvent> disruptor = new Disruptor<>(factory, bufferSize, executor);
 
         //Commit to a single producer which optimizes the disruptor
@@ -178,7 +185,11 @@ public class RunTest  {
 
 
         // Connect the handler
-        disruptor.handleEventsWith(new LinkEventHandler());
+        //disruptor.handleEventsWith(linkEventHandler);
+        disruptor.handleEventsWith(linkEventHandler, linkEventHandler2, linkEventHandler3, linkEventHandler4);
+
+        // "after" sets up a pipeline of handlers, not what we want
+        //disruptor.after(linkEventHandler).handleEventsWith(linkEventHandler2);
 
         // Start the Disruptor, starts all threads running
         disruptor.start();
@@ -190,7 +201,6 @@ public class RunTest  {
 
         //This LinkDataRaw object is 574 bytes
         ByteBuffer bb = ByteBuffer.allocate(574);
-        long max = 10000000L;
 
         bb.put(getTheBytes(link));
         System.out.println("runDisruptorForLinks bb: " + bb.toString() );
@@ -198,14 +208,16 @@ public class RunTest  {
         LinkDataRaw newLink = (LinkDataRaw) deserialize(bb.array());
         //Check that this object is valid
         //System.out.println("runDisruptorForLinks newLink: " + newLink.getSpeedLimit() );
-        System.out.println("runDisruptor Number of RawLinkData objects to send: " + max );
+        System.out.println("runDisruptor Number of RawLinkData objects to send: " + NUMBER_OF_LINKS );
 
         long start = System.currentTimeMillis();
 
-        for (long l = 0; l < max; l++)
+        for (long l = 0; l < NUMBER_OF_LINKS; l++)
         {
             producer.onData(bb);
         }
+
+        disruptorLinksLatch.await();
 
         long elapsed = System.currentTimeMillis()-start;
         System.out.println("runDisruptorForLinks Elapsed time: " + elapsed + "ms");

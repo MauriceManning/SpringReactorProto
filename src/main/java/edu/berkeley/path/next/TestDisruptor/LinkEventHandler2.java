@@ -8,8 +8,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Pipeline;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -19,7 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
-
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Pipeline;
 
 
 /**
@@ -27,23 +26,21 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ComponentScan
-public class LinkEventHandler implements EventHandler<LinkEvent> {
+public class LinkEventHandler2 implements EventHandler<LinkEvent> {
 
     @Autowired
     CountDownLatch disruptorLinksLatch;
 
     protected Logger logger;
     int counter;
-    Jedis jedis;
-    Pipeline pipe;
+    int handlrNum;
     List bucket;
 
     long ordinal;
     long numberOfConsumers;
 
 
-    public void onEvent(LinkEvent event, long sequence, boolean endOfBatch) throws IOException, ClassNotFoundException, InterruptedException
-    {
+    public void onEvent(LinkEvent event, long sequence, boolean endOfBatch) throws IOException, ClassNotFoundException {
         //only log info at the end of a batch receive
 
         //LinkDataRaw newLink = (LinkDataRaw) deserialize(event.get());
@@ -56,19 +53,15 @@ public class LinkEventHandler implements EventHandler<LinkEvent> {
 
             disruptorLinksLatch.countDown();
 
-
             //bucket.add(event.get());
 
             if (endOfBatch) {
-                //logger.info("LkHndlr1  count:  " + counter++);
-                //this desearialize will slow things down.
-                //LinkDataRaw newLink = (LinkDataRaw) deserialize(event.get());
-                //logger.info("LinkEventHandler endOfBatch. obj speed limit: " + newLink.getSpeedLimit());
-                //logger.info("LinkEventHandler endOfBatch. counter: " + counter);
+
+                //logger.info("LkHndlr" + handlrNum + "  count:  " + counter++);
 
 //            ListIterator<byte[]> iter = bucket.listIterator();
-//            while (iter.hasNext()){
-//                logger.info("LH1" + iter.next());
+//            while (iter.hasNext()) {
+//                logger.info("LH2" + iter.next());
 //                counter++;
 //                disruptorLinksLatch.countDown();
 //            }
@@ -84,5 +77,4 @@ public class LinkEventHandler implements EventHandler<LinkEvent> {
         ObjectInputStream o = new ObjectInputStream(b);
         return o.readObject();
     }
-
 }
